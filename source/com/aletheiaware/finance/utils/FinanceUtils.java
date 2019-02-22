@@ -50,7 +50,10 @@ import javax.crypto.spec.SecretKeySpec;
 
 public final class FinanceUtils {
 
+    public static final String CHARGE_CHANNEL = "Charge";
+    public static final String CUSTOMER_CHANNEL = "Customer";
     public static final String SUBSCRIPTION_CHANNEL = "Subscription";
+    public static final String USAGE_RECORD_CHANNEL = "UsageRecord";
 
     private FinanceUtils() {}
 
