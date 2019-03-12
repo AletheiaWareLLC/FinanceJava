@@ -21,6 +21,7 @@ import com.aletheiaware.bc.BCProto.BlockEntry;
 import com.aletheiaware.bc.BCProto.Record;
 import com.aletheiaware.bc.BCProto.Reference;
 import com.aletheiaware.bc.utils.BCUtils;
+import com.aletheiaware.finance.FinanceProto.Customer;
 import com.aletheiaware.finance.FinanceProto.Subscription;
 
 import com.google.protobuf.ByteString;
@@ -59,6 +60,37 @@ public final class FinanceUtils {
 
     public static String getCustomerId(InetAddress address, String alias, KeyPair keys) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
         Reference head = BCUtils.getHead(address, Reference.newBuilder()
+                .setChannelName(CUSTOMER_CHANNEL)
+                .build());
+        if (head != null) {
+            ByteString bh = head.getBlockHash();
+            while (bh != null && !bh.isEmpty()) {
+                Block b = BCUtils.getBlock(address, Reference.newBuilder()
+                        .setBlockHash(bh)
+                        .setChannelName(CUSTOMER_CHANNEL)
+                        .build());
+                if (b == null) {
+                    break;
+                }
+                for (BlockEntry e : b.getEntryList()) {
+                    Record r = e.getRecord();
+                    for (Record.Access a : r.getAccessList()) {
+                        if (a.getAlias().equals(alias)) {
+                            byte[] key = a.getSecretKey().toByteArray();
+                            byte[] decryptedKey = BCUtils.decryptRSA(keys.getPrivate(), key);
+                            byte[] decryptedPayload = BCUtils.decryptAES(decryptedKey, r.getPayload().toByteArray());
+                            return Customer.parseFrom(decryptedPayload).getCustomerId();
+                        }
+                    }
+                }
+                bh = b.getPrevious();
+            }
+        }
+        return null;
+    }
+
+    public static String getSubscriptionId(InetAddress address, String alias, KeyPair keys) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
+        Reference head = BCUtils.getHead(address, Reference.newBuilder()
                 .setChannelName(SUBSCRIPTION_CHANNEL)
                 .build());
         if (head != null) {
@@ -78,7 +110,7 @@ public final class FinanceUtils {
                             byte[] key = a.getSecretKey().toByteArray();
                             byte[] decryptedKey = BCUtils.decryptRSA(keys.getPrivate(), key);
                             byte[] decryptedPayload = BCUtils.decryptAES(decryptedKey, r.getPayload().toByteArray());
-                            return Subscription.parseFrom(decryptedPayload).getCustomerId();
+                            return Subscription.parseFrom(decryptedPayload).getSubscriptionId();
                         }
                     }
                 }
