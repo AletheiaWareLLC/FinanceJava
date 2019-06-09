@@ -20,7 +20,11 @@ import com.aletheiaware.bc.BCProto.Block;
 import com.aletheiaware.bc.BCProto.BlockEntry;
 import com.aletheiaware.bc.BCProto.Record;
 import com.aletheiaware.bc.BCProto.Reference;
+import com.aletheiaware.bc.Cache;
+import com.aletheiaware.bc.Crypto;
+import com.aletheiaware.bc.Network;
 import com.aletheiaware.bc.utils.BCUtils;
+import com.aletheiaware.bc.utils.ChannelUtils;
 import com.aletheiaware.finance.FinanceProto.Customer;
 import com.aletheiaware.finance.FinanceProto.Subscription;
 
@@ -58,17 +62,12 @@ public final class FinanceUtils {
 
     private FinanceUtils() {}
 
-    public static String getCustomerId(InetAddress address, String alias, KeyPair keys) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
-        Reference head = BCUtils.getHead(address, Reference.newBuilder()
-                .setChannelName(CUSTOMER_CHANNEL)
-                .build());
+    public static String getCustomerId(Cache cache, Network network, String alias, KeyPair keys) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
+        Reference head = ChannelUtils.getHeadReference(CUSTOMER_CHANNEL, cache, network);
         if (head != null) {
             ByteString bh = head.getBlockHash();
             while (bh != null && !bh.isEmpty()) {
-                Block b = BCUtils.getBlock(address, Reference.newBuilder()
-                        .setBlockHash(bh)
-                        .setChannelName(CUSTOMER_CHANNEL)
-                        .build());
+                Block b = ChannelUtils.getBlock(CUSTOMER_CHANNEL, cache, network, bh);
                 if (b == null) {
                     break;
                 }
@@ -77,8 +76,8 @@ public final class FinanceUtils {
                     for (Record.Access a : r.getAccessList()) {
                         if (a.getAlias().equals(alias)) {
                             byte[] key = a.getSecretKey().toByteArray();
-                            byte[] decryptedKey = BCUtils.decryptRSA(keys.getPrivate(), key);
-                            byte[] decryptedPayload = BCUtils.decryptAES(decryptedKey, r.getPayload().toByteArray());
+                            byte[] decryptedKey = Crypto.decryptRSA(keys.getPrivate(), key);
+                            byte[] decryptedPayload = Crypto.decryptAES(decryptedKey, r.getPayload().toByteArray());
                             return Customer.parseFrom(decryptedPayload).getCustomerId();
                         }
                     }
@@ -89,17 +88,12 @@ public final class FinanceUtils {
         return null;
     }
 
-    public static String getSubscriptionId(InetAddress address, String alias, KeyPair keys) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
-        Reference head = BCUtils.getHead(address, Reference.newBuilder()
-                .setChannelName(SUBSCRIPTION_CHANNEL)
-                .build());
+    public static String getSubscriptionId(Cache cache, Network network, String alias, KeyPair keys) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
+        Reference head = ChannelUtils.getHeadReference(SUBSCRIPTION_CHANNEL, cache, network);
         if (head != null) {
             ByteString bh = head.getBlockHash();
             while (bh != null && !bh.isEmpty()) {
-                Block b = BCUtils.getBlock(address, Reference.newBuilder()
-                        .setBlockHash(bh)
-                        .setChannelName(SUBSCRIPTION_CHANNEL)
-                        .build());
+                Block b = ChannelUtils.getBlock(SUBSCRIPTION_CHANNEL, cache, network, bh);
                 if (b == null) {
                     break;
                 }
@@ -108,8 +102,8 @@ public final class FinanceUtils {
                     for (Record.Access a : r.getAccessList()) {
                         if (a.getAlias().equals(alias)) {
                             byte[] key = a.getSecretKey().toByteArray();
-                            byte[] decryptedKey = BCUtils.decryptRSA(keys.getPrivate(), key);
-                            byte[] decryptedPayload = BCUtils.decryptAES(decryptedKey, r.getPayload().toByteArray());
+                            byte[] decryptedKey = Crypto.decryptRSA(keys.getPrivate(), key);
+                            byte[] decryptedPayload = Crypto.decryptAES(decryptedKey, r.getPayload().toByteArray());
                             return Subscription.parseFrom(decryptedPayload).getSubscriptionId();
                         }
                     }

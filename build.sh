@@ -23,9 +23,29 @@ fi
 mkdir out
 
 SOURCES=(
-    source/com/aletheiaware/finance/FinanceProto.java
     source/com/aletheiaware/finance/utils/FinanceUtils.java
 )
 
-javac -cp libs/AliasJava.jar:libs/BCJava.jar:libs/protobuf-lite-3.0.1.jar ${SOURCES[*]} -d out
+PROTO_SOURCES=(
+    source/com/aletheiaware/finance/FinanceProto.java
+)
+
+# Compile code
+javac -cp libs/AliasJava.jar:libs/BCJava.jar:libs/protobuf-lite-3.0.1.jar ${SOURCES[*]} ${PROTO_SOURCES[*]} -d out
 jar cvf out/FinanceJava.jar -C out .
+
+
+TEST_SOURCES=(
+    test/source/com/aletheiaware/finance/AllTests.java
+    test/source/com/aletheiaware/finance/utils/FinanceUtilsTest.java
+)
+
+# Compile tests
+javac -cp libs/AliasJava.jar:libs/BCJava.jar:libs/protobuf-lite-3.0.1.jar:libs/junit-4.12.jar:libs/hamcrest-core-1.3.jar:libs/mockito-all-1.10.19.jar:out/FinanceJava.jar ${TEST_SOURCES[*]} -d out
+jar cvf out/FinanceJavaTest.jar -C out .
+
+# Run tests
+java -cp libs/AliasJava.jar:libs/BCJava.jar:libs/protobuf-lite-3.0.1.jar:libs/junit-4.12.jar:libs/hamcrest-core-1.3.jar:libs/mockito-all-1.10.19.jar:out/FinanceJava.jar:out/FinanceJavaTest.jar org.junit.runner.JUnitCore com.aletheiaware.finance.AllTests
+
+# Checkstyle
+java -jar libs/checkstyle-8.11-all.jar -c ../checkstyle.xml ${SOURCES[*]} ${TEST_SOURCES[*]} > out/style || true
