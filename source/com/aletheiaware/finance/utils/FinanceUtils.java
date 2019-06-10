@@ -25,7 +25,7 @@ import com.aletheiaware.bc.Crypto;
 import com.aletheiaware.bc.Network;
 import com.aletheiaware.bc.utils.BCUtils;
 import com.aletheiaware.bc.utils.ChannelUtils;
-import com.aletheiaware.finance.FinanceProto.Customer;
+import com.aletheiaware.finance.FinanceProto.Registration;
 import com.aletheiaware.finance.FinanceProto.Subscription;
 
 import com.google.protobuf.ByteString;
@@ -56,29 +56,39 @@ import javax.crypto.spec.SecretKeySpec;
 public final class FinanceUtils {
 
     public static final String CHARGE_CHANNEL = "Charge";
-    public static final String CUSTOMER_CHANNEL = "Customer";
+    public static final String REGISTRATION_CHANNEL = "Registration";
     public static final String SUBSCRIPTION_CHANNEL = "Subscription";
     public static final String USAGE_RECORD_CHANNEL = "UsageRecord";
 
     private FinanceUtils() {}
 
-    public static String getCustomerId(Cache cache, Network network, String alias, KeyPair keys) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
-        Reference head = ChannelUtils.getHeadReference(CUSTOMER_CHANNEL, cache, network);
+    public static Registration getRegistration(Cache cache, Network network, String merchantAlias, KeyPair merchantKeys, String customerAlias, KeyPair customerKeys) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
+        Reference head = ChannelUtils.getHeadReference(REGISTRATION_CHANNEL, cache, network);
         if (head != null) {
             ByteString bh = head.getBlockHash();
             while (bh != null && !bh.isEmpty()) {
-                Block b = ChannelUtils.getBlock(CUSTOMER_CHANNEL, cache, network, bh);
+                Block b = ChannelUtils.getBlock(REGISTRATION_CHANNEL, cache, network, bh);
                 if (b == null) {
                     break;
                 }
                 for (BlockEntry e : b.getEntryList()) {
                     Record r = e.getRecord();
                     for (Record.Access a : r.getAccessList()) {
-                        if (a.getAlias().equals(alias)) {
+                        KeyPair keys = null;
+                        if (merchantKeys != null && a.getAlias().equals(merchantAlias)) {
+                            keys = merchantKeys;
+                        }
+                        if (customerKeys != null && a.getAlias().equals(customerAlias)) {
+                            keys = customerKeys;
+                        }
+                        if (keys != null) {
                             byte[] key = a.getSecretKey().toByteArray();
                             byte[] decryptedKey = Crypto.decryptRSA(keys.getPrivate(), key);
                             byte[] decryptedPayload = Crypto.decryptAES(decryptedKey, r.getPayload().toByteArray());
-                            return Customer.parseFrom(decryptedPayload).getCustomerId();
+                            Registration registration = Registration.parseFrom(decryptedPayload);
+                            if ((merchantAlias == null || registration.getMerchantAlias().equals(merchantAlias)) && (customerAlias == null || registration.getCustomerAlias().equals(customerAlias))) {
+                                return registration;
+                            }
                         }
                     }
                 }
@@ -88,7 +98,7 @@ public final class FinanceUtils {
         return null;
     }
 
-    public static String getSubscriptionId(Cache cache, Network network, String alias, KeyPair keys) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
+    public static Subscription getSubscription(Cache cache, Network network, String merchantAlias, KeyPair merchantKeys, String customerAlias, KeyPair customerKeys, String productId, String planId) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
         Reference head = ChannelUtils.getHeadReference(SUBSCRIPTION_CHANNEL, cache, network);
         if (head != null) {
             ByteString bh = head.getBlockHash();
@@ -100,11 +110,21 @@ public final class FinanceUtils {
                 for (BlockEntry e : b.getEntryList()) {
                     Record r = e.getRecord();
                     for (Record.Access a : r.getAccessList()) {
-                        if (a.getAlias().equals(alias)) {
+                        KeyPair keys = null;
+                        if (merchantKeys != null && a.getAlias().equals(merchantAlias)) {
+                            keys = merchantKeys;
+                        }
+                        if (customerKeys != null && a.getAlias().equals(customerAlias)) {
+                            keys = customerKeys;
+                        }
+                        if (keys != null) {
                             byte[] key = a.getSecretKey().toByteArray();
                             byte[] decryptedKey = Crypto.decryptRSA(keys.getPrivate(), key);
                             byte[] decryptedPayload = Crypto.decryptAES(decryptedKey, r.getPayload().toByteArray());
-                            return Subscription.parseFrom(decryptedPayload).getSubscriptionId();
+                            Subscription subscription = Subscription.parseFrom(decryptedPayload);
+                            if ((merchantAlias == null || subscription.getMerchantAlias().equals(merchantAlias)) && (customerAlias == null || subscription.getCustomerAlias().equals(customerAlias)) && (productId == null || subscription.getProductId().equals(productId)) && (planId == null || subscription.getPlanId().equals(planId))) {
+                                return subscription;
+                            }
                         }
                     }
                 }
