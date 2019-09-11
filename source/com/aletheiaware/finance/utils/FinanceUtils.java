@@ -55,19 +55,14 @@ import javax.crypto.spec.SecretKeySpec;
 
 public final class FinanceUtils {
 
-    public static final String CHARGE_CHANNEL = "Charge";
-    public static final String REGISTRATION_CHANNEL = "Registration";
-    public static final String SUBSCRIPTION_CHANNEL = "Subscription";
-    public static final String USAGE_RECORD_CHANNEL = "UsageRecord";
-
     private FinanceUtils() {}
 
-    public static Registration getRegistration(Cache cache, Network network, String merchantAlias, KeyPair merchantKeys, String customerAlias, KeyPair customerKeys) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
-        Reference head = ChannelUtils.getHeadReference(REGISTRATION_CHANNEL, cache, network);
+    public static Registration getRegistration(String channel, Cache cache, Network network, String merchantAlias, KeyPair merchantKeys, String customerAlias, KeyPair customerKeys) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
+        Reference head = ChannelUtils.getHeadReference(channel, cache, network);
         if (head != null) {
             ByteString bh = head.getBlockHash();
             while (bh != null && !bh.isEmpty()) {
-                Block b = ChannelUtils.getBlock(REGISTRATION_CHANNEL, cache, network, bh);
+                Block b = ChannelUtils.getBlock(channel, cache, network, bh);
                 if (b == null) {
                     break;
                 }
@@ -98,12 +93,12 @@ public final class FinanceUtils {
         return null;
     }
 
-    public static Subscription getSubscription(Cache cache, Network network, String merchantAlias, KeyPair merchantKeys, String customerAlias, KeyPair customerKeys, String productId, String planId) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
-        Reference head = ChannelUtils.getHeadReference(SUBSCRIPTION_CHANNEL, cache, network);
+    public static Subscription getSubscription(String channel, Cache cache, Network network, String merchantAlias, KeyPair merchantKeys, String customerAlias, KeyPair customerKeys, String productId, String planId) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
+        Reference head = ChannelUtils.getHeadReference(channel, cache, network);
         if (head != null) {
             ByteString bh = head.getBlockHash();
             while (bh != null && !bh.isEmpty()) {
-                Block b = ChannelUtils.getBlock(SUBSCRIPTION_CHANNEL, cache, network, bh);
+                Block b = ChannelUtils.getBlock(channel, cache, network, bh);
                 if (b == null) {
                     break;
                 }
