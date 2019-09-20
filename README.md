@@ -15,7 +15,7 @@ Libraries
 Protocol Buffers
 
     cd <path/to/Finance>
-    ./build.sh --javalite_out=<path/to/FinanceJava>/source/
+    ./build.sh --java_out=lite:<path/to/FinanceJava>/source/
 
 Build
 =====
