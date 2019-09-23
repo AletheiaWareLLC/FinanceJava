@@ -5,12 +5,12 @@ This is a Java implementation of Finance using the BC data structures.
 
 Setup
 =====
-Libraries
+FinanceJava should be in the same parent directory as the following prerequisite projects;
 
-    mkdir libs
-    ln -s <bcjavalib> libs/BCJava.jar
-    ln -s <aliasjavalib> libs/AliasJava.jar
-    ln -s <protolib> libs/protobuf-lite-3.0.1.jar
+    AliasJava
+    BCJava
+    Finance
+    JavaCommon
 
 Protocol Buffers
 
