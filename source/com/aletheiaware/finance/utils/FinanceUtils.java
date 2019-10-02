@@ -85,7 +85,9 @@ public final class FinanceUtils {
                             byte[] key = a.getSecretKey().toByteArray();
                             byte[] decryptedKey = Crypto.decryptRSA(keys.getPrivate(), key);
                             byte[] decryptedPayload = Crypto.decryptAES(decryptedKey, r.getPayload().toByteArray());
-                            callback.onRecord(bh, b, e, decryptedKey, decryptedPayload);
+                            if (!callback.onRecord(bh, b, e, decryptedKey, decryptedPayload)) {
+                                return;
+                            }
                         }
                     }
                 }
@@ -95,7 +97,7 @@ public final class FinanceUtils {
     }
 
     public interface RegistrationCallback {
-        void onRegistration(BlockEntry entry, Registration registration);
+        boolean onRegistration(BlockEntry entry, Registration registration);
     }
 
     public static void readRegistration(String channel, Cache cache, Network network, String merchantAlias, KeyPair merchantKeys, String customerAlias, KeyPair customerKeys, RegistrationCallback callback) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
@@ -105,8 +107,7 @@ public final class FinanceUtils {
                 try {
                     Registration r = Registration.parseFrom(payload);
                     if ((merchantAlias == null || r.getMerchantAlias().equals(merchantAlias)) && (customerAlias == null || r.getCustomerAlias().equals(customerAlias))) {
-                        callback.onRegistration(entry, r);
-                        return false;
+                        return callback.onRegistration(entry, r);
                     }
                 } catch (InvalidProtocolBufferException e) {
                     e.printStackTrace();
@@ -117,7 +118,7 @@ public final class FinanceUtils {
     }
 
     public interface SubscriptionCallback {
-        void onSubscription(BlockEntry entry, Subscription subscription);
+        boolean onSubscription(BlockEntry entry, Subscription subscription);
     }
 
     public static void readSubscription(String channel, Cache cache, Network network, String merchantAlias, KeyPair merchantKeys, String customerAlias, KeyPair customerKeys, String productId, String planId, SubscriptionCallback callback) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
@@ -127,8 +128,7 @@ public final class FinanceUtils {
                 try {
                     Subscription s = Subscription.parseFrom(payload);
                     if ((merchantAlias == null || s.getMerchantAlias().equals(merchantAlias)) && (customerAlias == null || s.getCustomerAlias().equals(customerAlias)) && (productId == null || s.getProductId().equals(productId)) && (planId == null || s.getPlanId().equals(planId))) {
-                        callback.onSubscription(entry, s);
-                        return false;
+                        return callback.onSubscription(entry, s);
                     }
                 } catch (InvalidProtocolBufferException e) {
                     e.printStackTrace();
@@ -139,7 +139,7 @@ public final class FinanceUtils {
     }
 
     public interface ChargeCallback {
-        void onCharge(BlockEntry entry, Charge charge);
+        boolean onCharge(BlockEntry entry, Charge charge);
     }
 
     public static void readCharges(String channel, Cache cache, Network network, String merchantAlias, KeyPair merchantKeys, String customerAlias, KeyPair customerKeys, String productId, String planId, ChargeCallback callback) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
@@ -150,7 +150,7 @@ public final class FinanceUtils {
                     try {
                         Charge c = Charge.parseFrom(payload);
                         if ((merchantAlias == null || c.getMerchantAlias().equals(merchantAlias)) && (customerAlias == null || c.getCustomerAlias().equals(customerAlias)) && (productId == null || c.getProductId().equals(productId)) && (planId == null || c.getPlanId().equals(planId))) {
-                            callback.onCharge(entry, c);
+                            return callback.onCharge(entry, c);
                         }
                     } catch (InvalidProtocolBufferException e) {
                         e.printStackTrace();
@@ -162,7 +162,7 @@ public final class FinanceUtils {
     }
 
     public interface InvoiceCallback {
-        void onInvoice(BlockEntry entry, Invoice invoice);
+        boolean onInvoice(BlockEntry entry, Invoice invoice);
     }
 
     public static void readInvoices(String channel, Cache cache, Network network, String merchantAlias, KeyPair merchantKeys, String customerAlias, KeyPair customerKeys, String productId, String planId, InvoiceCallback callback) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
@@ -173,7 +173,7 @@ public final class FinanceUtils {
                     try {
                         Invoice i = Invoice.parseFrom(payload);
                         if ((merchantAlias == null || i.getMerchantAlias().equals(merchantAlias)) && (customerAlias == null || i.getCustomerAlias().equals(customerAlias)) && (productId == null || i.getProductId().equals(productId)) && (planId == null || i.getPlanId().equals(planId))) {
-                            callback.onInvoice(entry, i);
+                            return callback.onInvoice(entry, i);
                         }
                     } catch (InvalidProtocolBufferException e) {
                         e.printStackTrace();
@@ -185,7 +185,7 @@ public final class FinanceUtils {
     }
 
     public interface UsageRecordCallback {
-        void onUsageRecord(BlockEntry entry, UsageRecord usageRecord);
+        boolean onUsageRecord(BlockEntry entry, UsageRecord usageRecord);
     }
 
     public static void readUsageRecords(String channel, Cache cache, Network network, String merchantAlias, KeyPair merchantKeys, String customerAlias, KeyPair customerKeys, String productId, String planId, UsageRecordCallback callback) throws IOException, NoSuchAlgorithmException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, BadPaddingException {
@@ -196,7 +196,7 @@ public final class FinanceUtils {
                     try {
                         UsageRecord u = UsageRecord.parseFrom(payload);
                         if ((merchantAlias == null || u.getMerchantAlias().equals(merchantAlias)) && (customerAlias == null || u.getCustomerAlias().equals(customerAlias)) && (productId == null || u.getProductId().equals(productId)) && (planId == null || u.getPlanId().equals(planId))) {
-                            callback.onUsageRecord(entry, u);
+                            return callback.onUsageRecord(entry, u);
                         }
                     } catch (InvalidProtocolBufferException e) {
                         e.printStackTrace();
