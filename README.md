@@ -9,6 +9,7 @@ FinanceJava should be in the same parent directory as the following prerequisite
 
     AliasJava
     BCJava
+    CryptoJava
     Finance
     JavaCommon
 

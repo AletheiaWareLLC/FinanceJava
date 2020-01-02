@@ -32,7 +32,7 @@ PROTO_SOURCES=(
 )
 
 # Compile code
-javac -cp ../AliasJava/out/AliasJava.jar:../BCJava/out/BCJava.jar:../JavaCommon/libs/protobuf-java-3.9.1.jar ${SOURCES[*]} ${PROTO_SOURCES[*]} -d out/code
+javac -cp ../AliasJava/out/AliasJava.jar:../BCJava/out/BCJava.jar:../CryptoJava/out/CryptoJava.jar:../JavaCommon/libs/protobuf-java-3.9.1.jar ${SOURCES[*]} ${PROTO_SOURCES[*]} -d out/code
 jar cvf out/FinanceJava.jar -C out/code .
 
 
@@ -42,11 +42,11 @@ TEST_SOURCES=(
 )
 
 # Compile tests
-javac -cp ../AliasJava/out/AliasJava.jar:../BCJava/out/BCJava.jar:../JavaCommon/libs/protobuf-java-3.9.1.jar:../JavaCommon/libs/junit-4.12.jar:../JavaCommon/libs/hamcrest-core-2.1.jar:../JavaCommon/libs/mockito-all-1.10.19.jar:out/FinanceJava.jar ${TEST_SOURCES[*]} -d out/test
+javac -cp ../AliasJava/out/AliasJava.jar:../BCJava/out/BCJava.jar:../CryptoJava/out/CryptoJava.jar:../JavaCommon/libs/protobuf-java-3.9.1.jar:../JavaCommon/libs/junit-4.12.jar:../JavaCommon/libs/hamcrest-core-2.1.jar:../JavaCommon/libs/mockito-all-1.10.19.jar:out/FinanceJava.jar ${TEST_SOURCES[*]} -d out/test
 jar cvf out/FinanceJavaTest.jar -C out/test .
 
 # Run tests
-java -cp ../AliasJava/out/AliasJava.jar:../BCJava/out/BCJava.jar:../JavaCommon/libs/protobuf-java-3.9.1.jar:../JavaCommon/libs/junit-4.12.jar:../JavaCommon/libs/hamcrest-core-2.1.jar:../JavaCommon/libs/mockito-all-1.10.19.jar:out/FinanceJava.jar:out/FinanceJavaTest.jar org.junit.runner.JUnitCore com.aletheiaware.finance.AllTests
+java -cp ../AliasJava/out/AliasJava.jar:../BCJava/out/BCJava.jar:../CryptoJava/out/CryptoJava.jar:../JavaCommon/libs/protobuf-java-3.9.1.jar:../JavaCommon/libs/junit-4.12.jar:../JavaCommon/libs/hamcrest-core-2.1.jar:../JavaCommon/libs/mockito-all-1.10.19.jar:out/FinanceJava.jar:out/FinanceJavaTest.jar org.junit.runner.JUnitCore com.aletheiaware.finance.AllTests
 
 # Checkstyle
 java -jar ../JavaCommon/libs/checkstyle-8.24-all.jar -c ../checkstyle.xml ${SOURCES[*]} ${TEST_SOURCES[*]} > out/style || true
